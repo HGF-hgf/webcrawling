@@ -1,0 +1,3 @@
+Total time main: 24.80343532562256 seconds) 
+Total time crawl: 24.78126096725464 seconds) 
+Total time link: 7.119695663452148 seconds) 
