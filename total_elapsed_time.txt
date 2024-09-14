@@ -1,0 +1,1 @@
+Total elapsed time for all articles: 31.971225261688232 seconds 
