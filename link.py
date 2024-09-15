@@ -47,4 +47,4 @@ def get_link(url):
         browser.close()
         end_time = time.time()
         elapsed_time = end_time - start_time
-    return links, elapsed_time
+    return links
