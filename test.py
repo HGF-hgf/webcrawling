@@ -16,10 +16,12 @@ default_args = {
 }
 
 dag = DAG(
-    'test4',  # Tên DAG
+    'test6',  # Tên DAG
     default_args=default_args,
     description='A pipeline to crawl news articles and store them in MongoDB',
     schedule_interval=timedelta(days=1),  # Lịch chạy hàng ngày
+    max_active_runs=1,
+    concurrency=16,
 )
 
 def get_article(url, **kwargs):
@@ -27,53 +29,60 @@ def get_article(url, **kwargs):
     print(f"Fetching article from {url}")
 
     with sync_playwright() as p:
+        # Use Chromium browser
         browser = p.chromium.launch(headless=True)
         page = browser.new_page()
         page.goto(url)
-        page.wait_for_timeout(3000)
-        # Giả sử có logic crawl bài viết ở đây
-        # Take category
-        category_element = page.locator('h1.category-main a')
-        category = category_element.text_content().strip() if category_element else 'No category'
-        category_html = category_element.inner_html() if category_element else 'No category HTML'
-
-        # Take meta
-        meta_element = page.locator('div.detail__meta')
-        meta = meta_element.text_content().strip() if meta_element else 'No meta'
-        meta_html = meta_element.inner_html() if meta_element else 'No meta HTML'
-
-        # Take title
-        title_element = page.locator('h1.detail__title')
-        title = title_element.text_content().strip() if title_element else 'No title'
-        title_html = title_element.inner_html() if title_element else 'No title HTML'
-
-        # Take content
-        content_element = page.locator('div.detail__content')
-        content_html = content_element.inner_html() if content_element else 'No content HTML'
-        paragraph_elements = content_element.locator('p, h4').all_text_contents() if content_element else []
-        content = '\n'.join([p.strip() for p in paragraph_elements])
-
-        # Process and save data
         client = MongoClient('localhost', 27017)
-        db = client['news2']
+        
+        db = client['news3']
         collection = db['newscrawl']
 
         newscrawl = {
-            'url': url,
-            'category': category,
-            'meta': meta,
-            'title': title,
-            'content': content,
-            'content_html': content_html
+            'url': url
         }
 
-        if collection.find_one({'url': url}) is None:
-            collection.insert_one(newscrawl)
-            print(f"Saved article from {url}")
-        else:
+        if collection.find_one({'url': url}) != None:
             print(f"Article from {url} already exists")
-            
-        print(f"Crawled article from {url}")
+            return 0
+        else:
+        # Wait for page to load content (adjust timeout as needed)
+            page.wait_for_timeout(3000)
+
+
+
+            # Take category
+            category_element = page.locator('h1.category-main a')
+            category = category_element.text_content().strip() if category_element else 'No category'
+            #category_html = category_element.inner_html() if category_element else 'No category HTML'
+
+            # Take meta
+            meta_element = page.locator('div.detail__meta')
+            meta = meta_element.text_content().strip() if meta_element else 'No meta'
+            #meta_html = meta_element.inner_html() if meta_element else 'No meta HTML'
+
+            # Take title
+            title_element = page.locator('h1.detail__title')
+            title = title_element.text_content().strip() if title_element else 'No title'
+            #title_html = title_element.inner_html() if title_element else 'No title HTML'
+
+            # Take content
+            content_element = page.locator('div.detail__content')
+            content_html = content_element.inner_html() if content_element else 'No content HTML'
+            paragraph_elements = content_element.locator('p, h4').all_text_contents() if content_element else []
+            content = '\n'.join([p.strip() for p in paragraph_elements])
+
+            # Process and save data
+            newscrawl = {
+                'url': url,
+                'category': category,
+                'meta': meta,
+                'title': title,
+                'content': content,
+                'content_html': content_html
+            }
+            collection.insert_one(newscrawl)
+            print(f"Saved article from {url} to MongoDB")
         browser.close()
 
     end_time = time.time()
@@ -83,13 +92,12 @@ def get_article(url, **kwargs):
 
 def record_time(**kwargs):
     ti = kwargs['ti']
-    total_elapsed_time = 0
+    
     for url in url_list:
         elapsed_time = ti.xcom_pull(key=f'elapsed_time_{url}', task_ids=f'crawl_{url_list.index(url)}')
-        total_elapsed_time += elapsed_time
-
-    with open('/home/hgf/airflow/dags/total_elapsed_time.txt', 'w', encoding='utf-8') as file:
-        file.write(f"Total elapsed time for all articles: {total_elapsed_time} seconds \n")
+        if elapsed_time is not None:
+            with open('/home/hgf/airflow/dags/total_elapsed_time.txt', 'a', encoding='utf-8') as file:
+                file.write(f'{url}: {elapsed_time}\n')
 
 url_list = [
     'https://vneconomy.vn/10-thien-duong-thue-lon-nhat-the-gioi.htm',
