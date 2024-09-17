@@ -3,10 +3,13 @@ from airflow import DAG # type: ignore
 from datetime import datetime, timedelta
 import link
 import crawl
+import random
 
 source_urls = [ 
-    'https://vneconomy.vn/thue-tai-chhinh.htm',
+    'https://vneconomy.vn/nhip-cau-doanh-nghiep.htm',
     'https://vneconomy.vn/kinh-te-so.htm',
+    'https://vneconomy.vn/chung-khoan.htm',
+    'https://vneconomy.vn/khung-phap-ly-chung-khoan.htm',
 ]
 
 default_args = {
@@ -20,20 +23,20 @@ default_args = {
 }
 
 dag = DAG(
-    'dynamic_tasks_example4',
+    'example3',
     default_args=default_args,
     description='A pipeline to crawl news articles and store them in MongoDB',
-    schedule_interval=timedelta(days=1),
+    schedule_interval=timedelta(minutes=10),
     max_active_runs=1,
     concurrency=16,
 )
 
 @task
 def get_url():
-    urls = []
-    for source_url in source_urls:
-        urls.extend(link.get_link(source_url))
-    return urls
+    source_url = random.choice(source_urls)
+    links = link.get_link(source_url)
+    source_urls[:] = [url for url in source_urls if url != source_url]
+    return links
 
 @task
 def get_articles(url):

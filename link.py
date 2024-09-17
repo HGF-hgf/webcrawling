@@ -2,24 +2,23 @@ from playwright.sync_api import sync_playwright #type: ignore
 import os
 import time
 
-url = 'https://vneconomy.vn/thue-tai-chhinh.htm'
+source_urls = [ 
+    'https://vneconomy.vn/thue-tai-chhinh.htm',
+    'https://vneconomy.vn/kinh-te-so.htm',
+]
 base_url = 'https://vneconomy.vn'
 
 def get_link(url):
     elasped_time = 0
     start_time = time.time()
     with sync_playwright() as p:
-        # Mở trình duyệt
-        browser = p.chromium.launch(headless=True)  # headless=True để chạy ngầm, không hiện cửa sổ trình duyệt
+        browser = p.chromium.launch(headless=True)  
         page = browser.new_page()
 
-        # Điều hướng đến URL
         page.goto(url)
 
-        # Đợi trang web tải và nội dung JavaScript được render (nếu có)
-        page.wait_for_timeout(5000)  # Đợi 5 giây để chắc chắn nội dung được tải xong (bạn có thể tinh chỉnh thời gian)
+        page.wait_for_timeout(5000)  
 
-        # Tìm tất cả các thẻ <a> bên trong <figure> có class 'story__thumb'
         figures = page.locator('figure.story__thumb a')
         figures_count = figures.count()
         if figures_count > 0:
@@ -34,7 +33,6 @@ def get_link(url):
                         link = base_url + link
                     links.append(link)
 
-            # Lưu các link vào file 'link2.txt'
             with open('link.txt', 'w', encoding='utf-8') as file:
                 for link in links:
                     file.write(link + '\n')
@@ -43,8 +41,18 @@ def get_link(url):
         else:
             print("No links found")
 
-        # Đóng trình duyệt
         browser.close()
         end_time = time.time()
         elapsed_time = end_time - start_time
     return links
+
+
+# def get_url():
+#     urls = []
+#     for source_url in source_urls:
+#         links = get_link(source_url)
+#         urls.extend(links[:4])
+#     for url in urls:
+#         print(url)
+
+# get_url()

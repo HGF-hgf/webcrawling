@@ -14,7 +14,7 @@ def get_article(url):
         page.goto(url)
         client = MongoClient('localhost', 27017)
         
-        db = client['vneconomy']
+        db = client['cafef']
         collection = db['newscrawl']
 
         newscrawl = {
@@ -31,31 +31,33 @@ def get_article(url):
 
 
             # Take category
-            category_element = page.locator('h1.category-main a')
-            if category_element.count() == 0 or not category_element.text_content().strip():
-                print(f"No category found for {url}, skipping...")
-                return None
-            category = category_element.text_content().strip()
-            if category == 'Tiêu điểm':
-                print(f"Category is Tiêu điểm, skipping...")
-                return None
+            category_element = page.locator('.category-page__name.cat')
+            if category_element:
+                category = category_element.text_content().strip()
             #category_html = category_element.inner_html() if category_element else 'No category HTML'
 
             # Take meta
-            meta_element = page.locator('div.detail__meta')
+            meta_element = page.locator('span.pdate')
             meta = meta_element.text_content().strip() if meta_element else 'No meta'
             #meta_html = meta_element.inner_html() if meta_element else 'No meta HTML'
 
             # Take title
-            title_element = page.locator('h1.detail__title')
+            title_element = page.locator('h1.title')
             title = title_element.text_content().strip() if title_element else 'No title'
             #title_html = title_element.inner_html() if title_element else 'No title HTML'
 
             # Take content
-            content_element = page.locator('div.detail__content')
+            sapo_element = page.locator('h2.sapo')
+            sapo = sapo_element.text_content().strip() if sapo_element else 'No sapo'
+            sapo_html = sapo_element.inner_html() if sapo_element else 'No sapo HTML'
+
+            content_element = page.locator('div.contentdetail')
             content_html = content_element.inner_html() if content_element else 'No content HTML'
             paragraph_elements = content_element.locator('p, h4').all_text_contents() if content_element else []
             content = '\n'.join([p.strip() for p in paragraph_elements])
+
+            full_content = f"{sapo}\n{content}"
+            full_html = f"{sapo_html}\n{content_html}"
 
             # Process and save data
             newscrawl = {
@@ -63,8 +65,8 @@ def get_article(url):
                 'category': category,
                 'meta': meta,
                 'title': title,
-                'content': content,
-                'content_html': content_html
+                'content': full_content,
+                'content_html': full_html
             }
             collection.insert_one(newscrawl)
         browser.close()
@@ -83,4 +85,4 @@ def get_article(url):
 # ]
 
 
-# get_article('https://vneconomy.vn/don-doc-tap-chi-kinh-te-viet-nam-so-38-2024.htm')
+get_article('https://cafef.vn/amazon-ra-toi-hau-thu-cho-nhan-vien-noi-khong-voi-lam-viec-online-188240917103846518.chn')
