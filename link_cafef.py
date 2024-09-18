@@ -5,7 +5,7 @@ import time
 source_url = 'https://cafef.vn/tai-chinh-quoc-te.chn'
 base_url = 'https://cafef.vn'
 
-def get_links_from_list_main(url):
+def get_links(url):
     start_time = time.time()
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
@@ -30,7 +30,7 @@ def get_links_from_list_main(url):
             if link and link != '#':  # Bỏ qua link trống hoặc chứa '#'
                 if not link.startswith('http'):  # Thêm base_url nếu link không có http
                     link = base_url + link
-                if link not in links and link != source_url and 'adx.admicro' not in link and regex.search(link):
+                if link not in links and link != url and 'adx.admicro' not in link and regex.search(link):
                     links.append(link)
 
         # Lưu các đường dẫn vào file links_list_main.txt
@@ -45,6 +45,7 @@ def get_links_from_list_main(url):
         
     elapsed_time = time.time() - start_time
     print(f"Elapsed time: {elapsed_time} seconds")
+    return links
 
-# Gọi hàm để lấy link từ phần list-main
-get_links_from_list_main(source_url)
+
+get_links(source_url)

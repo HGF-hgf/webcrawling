@@ -26,7 +26,7 @@ def get_article(url):
             return 0
         else:
         # Wait for page to load content (adjust timeout as needed)
-            page.wait_for_timeout(5000)
+            page.wait_for_timeout(7000)
 
 
 
@@ -85,4 +85,4 @@ def get_article(url):
 # ]
 
 
-get_article('https://cafef.vn/amazon-ra-toi-hau-thu-cho-nhan-vien-noi-khong-voi-lam-viec-online-188240917103846518.chn')
+# get_article('https://cafef.vn/sau-o-to-vinfast-tiep-tuc-choi-lon-uu-dai-toi-da-12-trieu-cho-khach-mua-xe-may-dien-18824091611101297.chn')

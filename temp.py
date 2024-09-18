@@ -23,7 +23,7 @@ default_args = {
 }
 
 dag = DAG(
-    'example3',
+    'example4',
     default_args=default_args,
     description='A pipeline to crawl news articles and store them in MongoDB',
     schedule_interval=timedelta(minutes=10),
