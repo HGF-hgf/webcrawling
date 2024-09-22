@@ -9,13 +9,10 @@ def get_article(url):
 
     with sync_playwright() as p:
         # Use Chromium browser
-        browser = p.chromium.launch(headless=True)
-        page = browser.new_page()
-        page.goto(url)
-        client = MongoClient('localhost', 27017)
+        client = MongoClient('mongodb+srv://ngvh1110:1234@cluster0.3f4lo.mongodb.net/')
         
-        db = client['cafef']
-        collection = db['newscrawl']
+        db = client['newsletter']
+        collection = db['cafef']
 
         newscrawl = {
             'url': url
@@ -24,7 +21,12 @@ def get_article(url):
         if collection.find_one({'url': url}) != None:
             print(f"Article from {url} already exists")
             return 0
+        
+        
         else:
+            browser = p.chromium.launch(headless=True)
+            page = browser.new_page()
+            page.goto(url)
         # Wait for page to load content (adjust timeout as needed)
             page.wait_for_timeout(7000)
 

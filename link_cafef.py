@@ -48,4 +48,3 @@ def get_links(url):
     return links
 
 
-get_links(source_url)
